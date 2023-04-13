@@ -1,6 +1,6 @@
 import React, { useContext, createContext, useEffect, useState, ReactNode } from "react";
 import { auth } from "../firebase";
-import { Auth, UserCredential, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { Auth, UserCredential, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth";
 
 export interface AuthProviderProps {
   children?: ReactNode;
@@ -16,7 +16,7 @@ export const UserStateContext = createContext<UserContextState>({} as UserContex
 export interface AuthContextModel {
   auth: Auth;
   user: User | null;
-  signIn: (email: string, password: string) => Promise<UserCredential>;
+  logIn: (email: string, password: string) => Promise<UserCredential>;
   signUp: (email: string, password: string) => Promise<UserCredential>;
   sendPasswordResetEmail?: (email: string) => Promise<void>;
 }
@@ -34,11 +34,15 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     return createUserWithEmailAndPassword(auth, email, password);
   }
 
-  function signIn(email: string, password: string): Promise<UserCredential> {
+  function logIn(email: string, password: string): Promise<UserCredential> {
     return signInWithEmailAndPassword(auth, email, password);
   }
   function resetPassword(email: string): Promise<void> {
     return sendPasswordResetEmail(auth, email);
+  }
+
+  function logOut(): Promise<void> {
+    return signOut(auth);
   }
 
   useEffect(() => {
@@ -51,9 +55,10 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const values = {
     signUp,
     user,
-    signIn,
+    logIn,
     resetPassword,
     auth,
+    logOut,
   };
 
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;

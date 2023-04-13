@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Typography, Checkbox, Alert } from "antd";
+import { Form, Input, Button, Typography, Alert } from "antd";
 import { MailOutlined, UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useAuth } from "../contexts/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
@@ -17,13 +18,15 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const navigate = useNavigate();
+
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
       await signUp(values.email, values.password);
+      navigate("/");
     } catch (error: any) {
       console.log(error);
-      // setError("Failed to create an account");
       setError(error.message);
     }
     setLoading(false);
@@ -53,14 +56,11 @@ const SignUp = () => {
             Sign up
           </Button>
         </Form.Item>
-        <Form.Item name="remember" valuePropName="checked" {...tailLayout}>
-          <Checkbox>Remember me</Checkbox>
-        </Form.Item>
       </Form>
       <div style={{ marginTop: 16, textAlign: "center" }}>
         Already have an account?{" "}
         <Button type="link" style={{ color: "#13c2c2" }}>
-          Log In
+          <Link to="/login"> Log In</Link>
         </Button>
       </div>
     </div>
