@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Typography, Checkbox } from "antd";
+import { Form, Input, Button, Typography, Checkbox, Alert } from "antd";
 import { MailOutlined, UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -13,17 +13,22 @@ const tailLayout = {
 };
 
 const SignUp = () => {
-  const { signUp } = useAuth();
+  const { signUp, auth } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
       await signUp(values.email, values.password);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      // setError("Failed to create an account");
+      setError(error.message);
     }
     setLoading(false);
+
+    console.log("auth", auth);
   };
 
   return (
@@ -32,6 +37,7 @@ const SignUp = () => {
       <Title level={2} style={{ textAlign: "center", textDecoration: "bold" }}>
         Sign Up
       </Title>
+      {error && <Alert message="Error:" description={error} style={{ color: "red", fontWeight: "bold" }} type="error" closable />}
       <Form layout="vertical" onFinish={onFinish}>
         <Form.Item label="Username" name="username" rules={[{ required: true, message: "Please enter your username!" }]}>
           <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Username" />
@@ -43,7 +49,7 @@ const SignUp = () => {
           <Input.Password prefix={<LockOutlined className="site-form-item-icon" />} placeholder="Password" />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" style={{ width: "100%" }} loading={loading}>
+          <Button type="primary" htmlType="submit" style={{ width: "100%", backgroundColor: "#13c2c2" }} loading={loading}>
             Sign up
           </Button>
         </Form.Item>
@@ -52,7 +58,10 @@ const SignUp = () => {
         </Form.Item>
       </Form>
       <div style={{ marginTop: 16, textAlign: "center" }}>
-        Already have an account? <Button type="link">Log In</Button>
+        Already have an account?{" "}
+        <Button type="link" style={{ color: "#13c2c2" }}>
+          Log In
+        </Button>
       </div>
     </div>
   );
