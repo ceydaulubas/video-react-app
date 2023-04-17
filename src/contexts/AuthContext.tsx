@@ -1,5 +1,5 @@
 import React, { useContext, createContext, useEffect, useState, ReactNode } from "react";
-import { auth } from "../firebase";
+import { auth } from "../../src/firebase/index";
 import { Auth, UserCredential, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth";
 
 export interface AuthProviderProps {
@@ -10,6 +10,7 @@ export interface UserContextState {
   isAuthenticated: boolean;
   isLoading: boolean;
   id?: string;
+  setIsAuthenticated: (value: boolean) => void;
 }
 
 export const UserStateContext = createContext<UserContextState>({} as UserContextState);
@@ -19,6 +20,8 @@ export interface AuthContextModel {
   logIn: (email: string, password: string) => Promise<UserCredential>;
   signUp: (email: string, password: string) => Promise<UserCredential>;
   sendPasswordResetEmail?: (email: string) => Promise<void>;
+  logOut: () => Promise<void>;
+  isAuthenticated: boolean;
 }
 
 export const AuthContext = React.createContext<AuthContextModel>({} as AuthContextModel);
@@ -29,25 +32,17 @@ export function useAuth() {
 
 export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  function signUp(email: string, password: string) {
-    return createUserWithEmailAndPassword(auth, email, password);
-  }
-
-  function logIn(email: string, password: string): Promise<UserCredential> {
-    return signInWithEmailAndPassword(auth, email, password);
-  }
-  function resetPassword(email: string): Promise<void> {
-    return sendPasswordResetEmail(auth, email);
-  }
-
-  function logOut(): Promise<void> {
-    return signOut(auth);
-  }
+  const signUp = (email: string, password: string): Promise<UserCredential> => createUserWithEmailAndPassword(auth, email, password);
+  const logIn = (email: string, password: string): Promise<UserCredential> => signInWithEmailAndPassword(auth, email, password);
+  const resetPassword = (email: string): Promise<void> => sendPasswordResetEmail(auth, email);
+  const logOut = (): Promise<void> => signOut(auth);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
+      setIsAuthenticated(!!user); // if there is a user , isAuthenticated will be true
     });
     return unsubscribe;
   }, []);
@@ -59,9 +54,14 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     resetPassword,
     auth,
     logOut,
+    isAuthenticated,
   };
 
-  return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={values}>
+      <UserStateContext.Provider value={{ isAuthenticated, isLoading: !user, setIsAuthenticated }}>{children}</UserStateContext.Provider>
+    </AuthContext.Provider>
+  );
 }
 
 export const useUserContext = (): UserContextState => {

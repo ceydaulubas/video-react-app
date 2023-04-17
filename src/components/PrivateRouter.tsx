@@ -1,16 +1,9 @@
-import React from "react";
-import { Route, Navigate } from "react-router-dom";
-import { useUserContext } from "../contexts/AuthContext";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
-interface PrivateRouteProps {
-  path: string;
-  element: React.ReactNode;
-}
+const PrivateRoutes = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Outlet /> : <Navigate to="/logIn" />;
+};
 
-function PrivateRoute({ path, element }: PrivateRouteProps) {
-  const { isAuthenticated } = useUserContext();
-
-  return isAuthenticated ? <Route path={path} element={element} /> : <Navigate to="/login" replace />;
-}
-
-export default PrivateRoute;
+export default PrivateRoutes;
